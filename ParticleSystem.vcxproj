@@ -125,7 +125,6 @@
     <ClCompile Include="..\..\..\..\..\OpenGLTemplate\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\..\OpenGLTemplate\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Cloth.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="DOF.cpp" />
     <ClCompile Include="Joint.cpp" />
@@ -133,15 +132,11 @@
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="shader.cpp" />
-    <ClCompile Include="Span.cpp" />
-    <ClCompile Include="SpringDamper.cpp" />
     <ClCompile Include="Tokenizer.cpp" />
-    <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Cloth.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="DOF.h" />
@@ -150,14 +145,13 @@
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="shader.h" />
-    <ClInclude Include="Span.h" />
-    <ClInclude Include="SpringDamper.h" />
     <ClInclude Include="Tokenizer.h" />
-    <ClInclude Include="Triangle.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

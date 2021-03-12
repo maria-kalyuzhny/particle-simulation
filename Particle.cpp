@@ -1,21 +1,19 @@
 #include "Particle.h"
 
-Particle::Particle(glm::vec3 pos, float mass, bool fix) {
+Particle::Particle(glm::vec3 pos, glm::vec3 vel, float mass, float lifeSpan, float radius) {
+	//std::cout << "initializing particle" << std::endl;
 	r0 = pos;
 	r = pos;
 	m = mass;
-	v = glm::vec3(0);
+	rad = radius;
+	life = lifeSpan;
+	v = vel;
 	a = glm::vec3(0);
 	f = glm::vec3(0);
-	p = glm::vec3(0);
-	n = glm::vec3(0,0,1);
-	fixed = fix;
+	//PrintPos();
 }
 
 void Particle::ApplyUserControls(glm::vec3 offset, glm::vec3 rot) {
-	if (!fixed) {
-		return;
-	}
 	r = r0 + offset;
 	glm::mat4 rotX = glm::rotate(rot.x, glm::vec3(1, 0, 0));
 	glm::mat4 rotY = glm::rotate(rot.y, glm::vec3(0, 1, 0));
@@ -25,14 +23,15 @@ void Particle::ApplyUserControls(glm::vec3 offset, glm::vec3 rot) {
 
 void Particle::ApplyConstraints(float ground, float e, float mD) {
 	if (r.y < ground) {
-		n = glm::vec3(0,1,0);
+		glm::vec3 n = glm::vec3(0,1,0);
 		//restitution
 		float vClose = glm::dot(v,n);
 		glm::vec3 j = -(1+e)*m*vClose*n;
 		glm::vec3 deltaV = (1.0f/m)*j;
-		glm::vec3 deltaV2 = glm::vec3(0);
+		//PrintVec(deltaV);
 
 		//friction
+		glm::vec3 deltaV2 = glm::vec3(0);
 		glm::vec3 vNorm = glm::dot(v,n)*n;
 		glm::vec3 vTan = v - vNorm;
 		float magnitude = mD*glm::length(j);
@@ -50,15 +49,12 @@ void Particle::ApplyConstraints(float ground, float e, float mD) {
 	}
 }
 
+void Particle::Step(float dT) {
+	life = life - dT;
+}
+
 void Particle::ForwardIntegrate(float dT) {
-	if (fixed) {
-		return; //forces don't affect fixed particles
-	}
 	a = (1/m)*f;
 	v = v + a*dT;
 	r = r + v*dT;
-}
-
-void Particle::PrintPos() {
-	std::cout << r.x << " " << r.y << " " << r.z <<std::endl;
 }

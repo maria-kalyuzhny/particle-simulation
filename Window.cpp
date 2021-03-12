@@ -20,25 +20,22 @@ std::chrono::high_resolution_clock::time_point Window::start;
 std::chrono::steady_clock::time_point Window::currTime;
 bool Window::started;
 bool Window::paused;
-int Window::numIncr = 60;
+int Window::numIncr = 10;	// particle system steps numIncr times per
+							// draw loop to avoid 'batches' of new particles
 
 // Objects
 ParticleSystem * Window::ps;
+Cube * Window::ground;
 
 // Physics constants
-glm::vec3 Window::vWind = glm::vec3(0.0,0.0,0.0);
 float Window::density = 1.225f;
-float Window::drag = 1.5f;
-float Window::kS = 15.0f;
-float Window::kD = 0.4f;
+float Window::drag = 1.0f;
 float Window::mass = 1.5f;
 float Window::restitution = 0.05f;
 float Window::friction = 0.5f;
-float Window::groundLevel = -0.5f;
-glm::vec3 Window::gravity = glm::vec3(0.0,-1.0,0.0);
+float Window::groundLevel = -2.0f;
+glm::vec3 Window::gravity = glm::vec3(0.0,-3.0f,0.0);
 
-glm::vec3 Window::offset = glm::vec3(0);
-glm::vec3 Window::rotation = glm::vec3(0);
 
 // Camera Properties
 Camera* Cam;
@@ -72,14 +69,8 @@ bool Window::initializeObjects()
 {
 	started = false;
 	culling = true;
-	ps = new ParticleSystem(30, 30, 0.03, mass, kS, kD);
-	/*std::cout << ps->vertices.size() << std::endl;
-	std::cout << ps->vertices[0].x << ps->vertices[0].y << ps->vertices[0].z << std::endl;
-	std::cout << ps->normals.size() << std::endl;
-	std::cout << ps->normals[0].x << ps->normals[0].y << ps->normals[0].z << std::endl;
-	std::cout << ps->faces.size() << std::endl;
-	std::cout << ps->faces[0] << " " << ps->faces[1] << " " << ps->faces[2];*/
-	ps->Update(Cam->GetViewProjectMtx(), Cam->GetViewMtx());
+	ps = new ParticleSystem();
+	ground = new Cube(glm::vec3(-5, -10, -5), glm::vec3(5, groundLevel-0.1, 5));
 
 	return true;
 }
@@ -88,6 +79,7 @@ void Window::cleanUp()
 {
 	// Deallocate the objects.
 	delete ps;
+	delete ground;
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);
@@ -201,27 +193,24 @@ void Window::displayCallback(GLFWwindow* window)
 		currTime = std::chrono::high_resolution_clock::now();
 		fsec changeFsec = currTime - prevTime;
 		float change = changeFsec.count();
-		fsec sinceStart = currTime - start;
-		float startDelta  = sinceStart.count();
-
 		float delta = change/numIncr;
-		ps->ApplyUserControls(offset, rotation);
+
+		//std::cout << delta*100 << std::endl;
 		for (int i = 0; i < numIncr; i++) {
-			ps->ApplyForces(gravity, vWind, density, drag);
-			ps->IntegrateMotion(delta);
+			ps->ApplyForces(gravity, density, drag);
+			ps->Step(delta);
+			ps->ApplyConstraints(groundLevel, restitution, friction);
 		}
-		ps->ApplyConstraints(groundLevel, friction, restitution);
 		ps->UpdateVertices();
-		ps->UpdateNormals();
 		ps->BindBuffers();
 		ps->Update(Cam->GetViewProjectMtx(), Cam->GetViewMtx());
 	}
 	
-
 	// Clear the color and depth buffers.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 	// Render the object.
+	ground->draw(Cam->GetViewProjectMtx(), Window::shaderProgram);
 	ps->Draw(Window::shaderProgram);
 	drawImgui();
 
@@ -258,35 +247,101 @@ void Window::drawImgui() {
 	//ImGui::SetWindowFontScale(10.0f);
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(Window::width / 3, Window::height));
-	
 
 	ImGui::Begin("Particle system simulation");
 	ImGui::SetWindowFontScale(2.0f);
 
-
+	// Create slider hierarchy
+	std::string slider_name;
 	std::string axes[3] = { "x", "y", "z" };
-	
-	ImGui::Text("ps position");
-	for (int i = 0; i < 3; i++) {
-		std::string slider_name = axes[i] + "##pos";
-		ImGui::SliderFloat(slider_name.c_str(), &offset[i], -2.0f, 1.5f);
+	// ImGui::SetNextTreeNodeOpen(true);
+	if (ImGui::TreeNode("Particle controls")) {
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("position")) {
+			for (int i = 0; i < 3; i++) {
+				std::string slider_name = axes[i] + "##pos";
+				if (i == 1) {
+					ImGui::SliderFloat(slider_name.c_str(), &ps->startPos[i], groundLevel, 5.0f);
+				}
+				else {
+					ImGui::SliderFloat(slider_name.c_str(), &ps->startPos[i], -5.0f, 5.0f);
+				}
+			}
+			slider_name = "var##pos";
+			ImGui::SliderFloat(slider_name.c_str(), &ps->posVar, 0.0f, 5.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("velocity")) {
+			for (int i = 0; i < 3; i++) {
+				std::string slider_name = axes[i] + "##rot";
+				ImGui::SliderFloat(slider_name.c_str(), &ps->startVel[i], -10.0f, 10.0f);
+			}
+			slider_name = "var##vel";
+			ImGui::SliderFloat(slider_name.c_str(), &ps->velVar, 0.0f, 10.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("radius")) {
+			slider_name = "##radius";
+			ImGui::SliderFloat(slider_name.c_str(), &ps->radius, 0.01f, 2.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("life span")) {
+			slider_name = "span##life";
+			ImGui::SliderFloat(slider_name.c_str(), &ps->lifeSpan, 0.0f, 10.0f);
+			slider_name = "var##life";
+			ImGui::SliderFloat(slider_name.c_str(), &ps->lifeVar, 0.0f, 10.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("particles per second")) {
+			slider_name = "##pps";
+			ImGui::SliderFloat(slider_name.c_str(), &ps->pps, 1.0f, 100.0f);
+			ImGui::TreePop();
+		}
+		ImGui::TreePop();
 	}
-	ImGui::Text("ps rotationn");
-	for (int i = 0; i < 3; i++) {
-		std::string slider_name = axes[i] + "##rot";
-		ImGui::SliderFloat(slider_name.c_str(), &rotation[i], -M_PI, M_PI);
+	ImGui::SetNextTreeNodeOpen(true);
+	if (ImGui::TreeNode("Environment controls")) {
+		//ImGui::Text("wind");
+		//for (int i = 0; i < 3; i++) {
+		//	std::string slider_name = axes[i] + "##wind";
+		//	ImGui::SliderFloat(slider_name.c_str(), &vWind[i], -0.5f, 0.5f);
+		//}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("gravity")) {
+			slider_name = "##gravity";
+			ImGui::SliderFloat(slider_name.c_str(), &gravity.y, 0.0f, -20.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("drag coefficient")) {
+			slider_name = "##drag";
+			ImGui::SliderFloat(slider_name.c_str(), &drag, 0.0f, 5.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("density")) {
+			slider_name = "##density";
+			ImGui::SliderFloat(slider_name.c_str(), &density, 0.0f, 5.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("collision restitution")) {
+			slider_name = "##restitution";
+			ImGui::SliderFloat(slider_name.c_str(), &restitution, 0.001f, 1.0f);
+			ImGui::TreePop();
+		}
+		ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::TreeNode("collision friction")) {
+			slider_name = "##friction";
+			ImGui::SliderFloat(slider_name.c_str(), &friction, 0.0f, 1.5f);
+			ImGui::TreePop();
+		}
+		ImGui::TreePop();
 	}
-
-	ImGui::Text(" ");
-	ImGui::Text("PHYSICS");
-	ImGui::Text("wind");
-	for (int i = 0; i < 3; i++) {
-		std::string slider_name = axes[i] + "##wind";
-		ImGui::SliderFloat(slider_name.c_str(), &vWind[i], -0.5f, 0.5f);
-	}
-
-
-
 
 	updateImguiPos();
 	ImGui::End();

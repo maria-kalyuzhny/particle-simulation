@@ -35,9 +35,9 @@ void setup_opengl_settings()
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glPolygonMode(GL_BACK, GL_LINE);
 	// Set clear color to black.
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-	glPointSize(5.0f);
+	glPointSize(10.0f);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 }
 

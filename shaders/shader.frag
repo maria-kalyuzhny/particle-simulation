@@ -8,9 +8,10 @@ in vec3 normalC;
 in vec3 posC;
 
 // uniforms used for lighting
-uniform vec3 AmbientColor = vec3(0.4,0.2,0.4);
+uniform vec3 AmbientColor = vec3(1.0,1.0,0.2);
+uniform vec3 AmbientCube = vec3(0.0,0.1,0.2);
 uniform vec3 LightDirection = normalize(vec3(1, 5, 2));
-uniform vec3 LightPos = vec3(0, 2, 2);
+uniform vec3 LightPos = vec3(0, 3, 0);
 uniform vec3 LightColor = vec3(1.0,0.2,0.5);
 uniform vec3 LightDirection2 = normalize(vec3(-4, -3, 1));
 //uniform vec3 LightPos2 = vec3(-4, -3, 1);
@@ -25,7 +26,7 @@ out vec4 fragColor;
 void main()
 {
 	vec3 L = normalize(LightPos-posC);
-	vec3 Atten = 7*LightColor/(distance(LightPos,posC));
+	vec3 Atten = 15*LightColor/(distance(LightPos,posC));
 	vec3 DiffuseNew = DiffuseColor*clamp(dot(L,normalC),0,1);
 
 	vec3 L2 = normalize(LightPos2-posC);
@@ -37,8 +38,8 @@ void main()
 	// normal shading for debug
 	// fragColor = vec4(fragNormal*0.5f + 0.5f,1);
 
-	//hack to set outlines to white
+	//hack to set cube color differently
 	if (DiffuseColor == vec3(0.123)){
-		fragColor = vec4(1);
+		fragColor = vec4(AmbientCube+Atten*(DiffuseNew),1);
 	}
 }

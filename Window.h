@@ -33,22 +33,16 @@ public:
 
 	// Objects
 	static ParticleSystem* ps;
+	static Cube* ground;
 
 	// Physics constants
 	static glm::vec3 gravity;
-	static glm::vec3 vWind;
 	static float density;
 	static float drag;
-	static float kS;
-	static float kD;
 	static float mass;
 	static float groundLevel;
 	static float restitution;
 	static float friction;
-
-	static glm::vec3 offset;
-	static glm::vec3 rotation;
-
 
 	// Shader Program 
 	static GLuint shaderProgram;
