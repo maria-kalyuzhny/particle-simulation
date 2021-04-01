@@ -8,7 +8,7 @@ class ParticleSystem
 	static const float PI;
 	GLuint VAO;
 	GLuint VBO, EBO;
-	glm::vec3 color;
+
 	glm::vec3 lineColor;
 	float spawnPeriod;
 	glm::mat4 world;
@@ -27,6 +27,7 @@ public:
 	glm::uint faces[MAX_P];
 	Particle* particles[MAX_P];
 
+	glm::vec3 color;
 	glm::vec3 startPos;
 	glm::vec3 startVel;
 	float lifeSpan;

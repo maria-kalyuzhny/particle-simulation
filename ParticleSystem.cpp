@@ -4,7 +4,7 @@ const float ParticleSystem::PI = 3.14159265359;
 ParticleSystem::ParticleSystem() {
 	//vertices = std::vector<glm::vec3>();
 	//faces = std::vector<glm::uint>();
-	color = glm::vec3(1.0f, 1.0f, 1.0f);
+	color = glm::vec3(0.6f, 1.0f, 0.8f);
 	lineColor = glm::vec3(0.1f, 0.1f, 0.1f);
 
 	model = glm::mat4(1.0f);
@@ -165,7 +165,8 @@ void ParticleSystem::ApplyForces(glm::vec3 gravity, float density, float drag) {
 	for (auto& particle : particles) {
 		if (particle != NULL) {
 			glm::vec3 e = -glm::normalize(particle->v);
-			float area = std::pow(particle->rad * PI, 2);
+			//float area = std::pow(particle->rad * PI, 2);
+			float area = std::pow(radius * PI, 2);
 			float v2 = std::pow(glm::length(particle->v), 2);
 			glm::vec3 fDrag = 0.5f * density * v2 * drag * area * e;
 			particle->f = particle->f + fDrag;

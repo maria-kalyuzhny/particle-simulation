@@ -59,6 +59,7 @@ public:
 	// GUI helpers
 	static void updateImguiPos();
 	static void drawImgui();
+	static bool initGui;
 
 	// update and draw functions
 	static void idleCallback();

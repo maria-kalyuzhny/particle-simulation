@@ -126,8 +126,6 @@
     <ClCompile Include="..\..\..\..\..\OpenGLTemplate\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cube.cpp" />
-    <ClCompile Include="DOF.cpp" />
-    <ClCompile Include="Joint.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
@@ -139,8 +137,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="Cube.h" />
-    <ClInclude Include="DOF.h" />
-    <ClInclude Include="Joint.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleSystem.h" />
